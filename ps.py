@@ -19,8 +19,6 @@ import glob
 import csv
 import uuid
 
-
-
 CUSTOM_MODEL_NAME = 'my_ssd_mobnet' 
 PRETRAINED_MODEL_NAME = 'ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8'
 PRETRAINED_MODEL_URL = 'http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8.tar.gz'
@@ -62,8 +60,6 @@ def detect_fn(image):
     prediction_dict = detection_model.predict(image, shapes)
     detections = detection_model.postprocess(prediction_dict, shapes)
     return detections
-
-
 
 app=Flask(__name__)
 
@@ -119,33 +115,20 @@ def live():
             save_results(text,region,'live_detected_result.csv','Detection_images')
         except:
             pass
-            
-        cv2.imshow('object detection',  cv2.resize(image_np_with_detections, (800, 600)))
-        
+        cv2.imshow('object detection',  cv2.resize(image_np_with_detections, (800, 600)))   
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
     cap.release()
     cv2.destroyAllWindows()
     return jsonify({'status':'OK'})
 
-
-
-
-
-
-
 @app.route('/upload',methods=['POST'])
 def upload():
     if 'image' not in request.files:
         return 'no image found'  
     category_index = label_map_util.create_category_index_from_labelmap(files['LABELMAP'])
-    # IMAGE_PATH ="D:\images\plate.png"
-
-
-    # img = cv2.imread(IMAGE_PATH)
     file=request.files['image']
     file.save('uploads/'+file.filename)
-    # file.save('test_data/'+file.filename+".jpg")
     img=cv2.imread("uploads/"+file.filename)
     img=np.array(img)
     img_path="uploads/"+file.filename
@@ -165,9 +148,6 @@ def upload():
         os.system("python main.py --mode test_only --LR_path test_data --generator_path pretrained_models/SRGAN.pt")
     img=cv2.imread(img_path)
     image_np = np.array(img)
-    # plt.imshow(image_np)
-    # plt.show()
-
     input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
     detections = detect_fn(input_tensor)
 
@@ -195,7 +175,6 @@ def upload():
 
     plt.imshow(cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB))
     plt.show()
-
 
     detection_threshold=0.4
     image=image_np_with_detections
@@ -229,52 +208,13 @@ def upload():
             os.system("python main.py --mode test_only --LR_path test_data --generator_path pretrained_models/SRGAN.pt")
             region=cv2.imread(img_path)
             region=np.array(region)
-        #     cv2.imwrite(os.path.join("test_data","orignal.jpg"),region)
-        #     os.system("python main.py --mode test_only --LR_path test_data --generator_path pretrained_models/SRGAN.pt")
-        #     region=cv2.imread(os.path.join("result","res_0000.png"))
-        #     sr = cv2.dnn_superres.DnnSuperResImpl_create()
-        #     path = "LapSRN_x8.pb"
-        #     sr.readModel(path)
-        #     sr.setModel("lapsrn",8)
-        #     # path = "EDSR_x4.pb"
-        #     # sr.readModel(path)
-        #     # sr.setModel("edsr",4)
-        #     region=sr.upsample(region)
-            # cv2.imwrite(os.path.join("uploads","orignal.jpg"),region)
-            # region=Image.open(os.path.join("uploads","orignal.jpg"))
-            # new_bri=0.7
-            # new_con=1.8
-            # new_sharp=9.0
-            # new_clr=0.0
-            # region=ImageEnhance.Brightness(region).enhance(new_bri)
-            # region=ImageEnhance.Contrast(region).enhance(new_con)
-            # region=ImageEnhance.Sharpness(region).enhance(new_sharp)
-            # region= np.array(region)
-            #enhance Brightness
-            # curr_bri=ImageEnhance.Brightness(region)
-            # region=curr_bri.enhance(1.5)
-            # print("called")
-        # cv2.imwrite(os.path.join("uploads","orignal.jpg"),region)
-        # region=Image.open(os.path.join("uploads","orignal.jpg"))
-        # new_bri=0.7
-        # new_con=1.5
-        # new_sharp=15.0
-        # new_clr=0.0
-        # region=ImageEnhance.Brightness(region).enhance(new_bri)
-        # region=ImageEnhance.Contrast(region).enhance(new_con)
-        # region=ImageEnhance.Sharpness(region).enhance(new_sharp)
-        # region= np.array(region)
         reader=easyocr.Reader(['en'])
         ocr_result=reader.readtext(region)
         cv2.imwrite("Detected_plate//res.jpg",region)
         ocr_result
         text = str(pytesseract.image_to_string(region))
-        # print(ocr_result)
-        # plt.imshow(cv2.cvtColor(region,cv2.COLOR_BGR2RGB))
-        # print(text)
         tess.append(text)
         print(text)
-        # cv2.imwrite(os.path.join("D:\images","detect.jpg"),region)
     region_threshold=0.4
     def filter_text(region,ocr_result,region_threshold):
         rectangle_size=region.shape[0]*region.shape[1]
@@ -284,14 +224,11 @@ def upload():
             height=np.sum(np.subtract(result[0][2],result[0][1]))
             if length*height/rectangle_size>region_threshold:
                 plate.append(result[1])
-        return plate   
-    
-      
+        return plate        
     ocr=filter_text(region,ocr_result,region_threshold)
     for x in range(len(ocr)):
         if ocr[x].isalpha():
             ocr[x]=ocr[x].upper()
-
     buffered = io.BytesIO()
     Image.fromarray(region).save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')   
