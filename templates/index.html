@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Plate Detection System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        fieldset {
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        label {
+            font-size: 18px;
+            display: block;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .option-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Number Plate Detection System</h1>
+        <fieldset style="display: flex; flex-direction:column; align-items: center;">
+            <label style="text-align: center; margin: 5px;">Select an option:</label>
+            <div class="option-container">
+                <div style="display: flex;">
+                    <input type="radio" id="upload" name="option" value="image">
+                    <label for="upload">Upload an Image</label>
+                </div>
+                <div style="display: flex; ">
+                    <input type="radio" id="live" name="option" value="video">
+                    <label for="live">Live Video Feed</label>
+                </div>
+            </div>
+            <button style="width: 25%;" onclick="startProcess()">Start Process</button>
+        </fieldset>
+    </div>
+
+    <script>
+        function startProcess() {
+            var option = document.querySelector('input[name="option"]:checked').value;
+            if (option === 'image') {
+                // Redirect to image upload page or trigger file input click event
+                window.location.href = 'drag';
+            } else if (option === 'video') {
+                // Send message to Python server to start live video feed
+                // Example: You can use fetch() to send a POST request to the server
+                fetch('http://localhost:5000/start_live_video', {
+                    method: 'POST',
+                    // Add any necessary headers or data
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to start live video feed');
+                    }
+                    // Handle successful response (optional)
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Handle error (optional)
+                });
+            }
+        }
+    </script>
+</body>
+</html>

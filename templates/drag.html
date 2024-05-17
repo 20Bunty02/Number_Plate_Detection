@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #drop-zone {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        #drop-zone:hover {
+            background-color: #f0f8ff;
+        }
+
+        #preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #preview img {
+            max-width: 100%;
+            height: auto;
+        }
+        #media-picker{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 5%;
+        }
+        .button {
+            width:25%;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Upload</h1>
+        <div id="drop-zone" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" >
+            <p>Drag &amp; drop an image file here</p>
+            <input type="file" id="file-input-1" accept="image/*" style="display: none;" onchange="handleFileInput(event)">
+        </div>
+        <div id="media-picker">
+            <button class="button" onclick="document.getElementById('file-input-1').click()">Upload</button>
+            <!-- <input type="file" id="file-input-2" accept="image/*" onchange="displayImage2(event)"> -->
+        </div>
+        <div id="preview"></div>
+        <div style="display: flex; justify-content: space-around;">
+            <div id="region" style="margin-top:20px ;">
+              <h3 id="reg-head"></h3>
+              <img id="reg-img" onerror='this.style.display = "none"'>
+            </div>
+        <div style="margin-top: 20px;">
+            <h3 id="text-head"></h3>
+            <h3 id="easy"></h3>
+            <h3 id="tess"></h3>
+        </div>
+        </div>
+    </div>
+    
+
+    <script>
+        function handleFileInput(event) {
+            const file = event.target.files[0];
+            if (file) {
+                displayImage1(file);
+            }
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                displayImage1(file);
+            }
+        }
+
+        function displayImage1(file) {
+            const img1=document.getElementById('reg-img')
+            const heading1=document.getElementById('reg-head')
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageUrl = event.target.result;
+                const preview = document.getElementById('preview');
+                preview.innerHTML = `<img src="${imageUrl}" style="height:350px; width:350px object-fit:cover" alt="Uploaded Image">`;
+            };
+            reader.readAsDataURL(file);
+            const formData = new FormData();
+            formData.append('image', file);
+            fetch('http://localhost:5000/upload', {
+            method: 'POST',
+            body: formData
+            })
+            .then(response => {
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+            return response.json();
+            })
+            .then(data => {
+                
+                heading1.innerText="Detected Number Plate"
+                img1.src='data:image/png;base64,'+data.region
+            img1.style='height:80px; width:200px;'
+            document.getElementById('text-head').innerText='Extracted text'
+                document.getElementById('easy').innerText='Easy OCR '+data.easy[0]
+            document.getElementById('tess').innerText='Tesseract OCR '+data.tess[0]
+            // document.getElementById('region').appendChild(heading)
+            // document.getElementById('region').appendChild(img)  
+            console.log('Image uploaded successfully:', data);
+            // Handle successful upload
+            })
+            .catch(error => {
+            console.error('Error uploading image:', error.message);
+            // Handle upload error
+            });
+        }
+        // function displayImage2(event) {
+        //     const file = event.target.files[0];
+        //     if (file) {
+        //         const reader = new FileReader();
+        //         reader.onload = function(event) {
+        //             const imageUrl = event.target.result;
+        //             const imagePreview = document.getElementById('preview');
+        //             imagePreview.innerHTML = `<img src="${imageUrl}" alt="Selected Image">`;
+        //         };
+        //         reader.readAsDataURL(file);
+        //     }
+        // }
+    </script>
+</body>
+</html>
